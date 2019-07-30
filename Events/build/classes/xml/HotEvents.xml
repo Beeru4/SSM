@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+		"-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.beerus.dao.HotEventsDao">
+	<select id="listHotEvents" resultType="HotEvents">
+		select * from hotEvents
+		<where>
+			<if test="events.keyWord != null">
+				keyWord LIKE CONCAT('%',#{events.keyWord},'%')
+			</if>
+		</where>
+		ORDER BY searchSum DESC
+		LIMIT #{currPageNo},#{pageSize}
+	</select>
+
+	<select id="cout_row" resultType="Integer">
+		select count(1) from hotEvents
+		<where>
+			<if test="events.keyWord != null">
+				keyWord LIKE CONCAT('%',#{events.keyWord},'%')
+			</if>
+		</where>
+	</select>
+
+	<select id="getHotEvents" resultMap="hotEvents">
+		select
+		h.id,h.keyWord,h.createDate,hotContent,c.commentDate,content
+		from
+		hotEvents h,comments c
+		where h.id = c.hotEventsId AND h.id = #{id}
+	</select>
+	
+	
+	<resultMap id="hotEvents" type="HotEvents">
+		<id column="id" property="id" />
+		<result column="keyWord" property="keyWord" />
+		<result column="createDate" property="createDate" />
+		<result column="hotContent" property="hotContent" />
+		<collection property="comments" ofType="Comments">
+			<result column="commentDate" property="commentDate" />
+			<result column="content" property="content" />
+		</collection>
+	</resultMap>
+</mapper>

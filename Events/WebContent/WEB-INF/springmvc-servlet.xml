@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+	http://www.springframework.org/schema/context 
+	http://www.springframework.org/schema/context/spring-context-3.1.xsd
+	http://www.springframework.org/schema/tx
+	http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+	http://www.springframework.org/schema/mvc 
+	http://www.springframework.org/schema/mvc/spring-mvc-3.1.xsd"
+	default-autowire="byName">
+
+	<!-- dataSource -->
+	<bean name="dataSource"
+		class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="url"
+			value="jdbc:mysql://localhost:3306/events?useUnicode=true&amp;characterEncoding=utf-8" />
+		<property name="username" value="root" />
+		<property name="password" value="wotoubeerus" />
+		<property name="driverClassName"
+			value="com.mysql.jdbc.Driver" />
+
+	</bean>
+	<!-- sqlSessionFactory -->
+	<bean name="sqlSessionFactory"
+		class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 扫入SQL映射文件 -->
+		<property name="mapperLocations" value="classpath:xml/*.xml" />
+		<!-- 扫入该包下的类并设置别名 -->
+		<property name="typeAliasesPackage" value="com.beerus.entity" />
+	</bean>
+	<!-- transactionManager -->
+	<bean name="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager" />
+	<!-- 要切入事务的方法 -->
+	<tx:advice id="txAdvide">
+		<tx:attributes>
+			<tx:method name="list*" propagation="NOT_SUPPORTED" />
+			<tx:method name="save*" />
+			<tx:method name="update*" />
+			<tx:method name="delete*" />
+		</tx:attributes>
+	</tx:advice>
+	<!-- 切入事务 -->
+	<aop:config>
+		<aop:pointcut
+			expression="execution(* com.berus.biz.*.*(..))" id="pointcut" />
+		<aop:advisor advice-ref="txAdvide" pointcut-ref="pointcut" />
+	</aop:config>
+
+	<!-- MapperScannerConfigurer 包名要一致 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.beerus.dao" />
+		<property name="sqlSessionFactoryBeanName"
+			value="sqlSessionFactory" />
+	</bean>
+
+	<!-- 开启注解扫描 -->
+	<context:component-scan
+		base-package="com.beerus" />
+
+	<!-- SpringMVC视图解析器 -->
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	<mvc:annotation-driven />
+	<mvc:resources location="/js/" mapping="/js/**"/>
+</beans>
